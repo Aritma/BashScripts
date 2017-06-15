@@ -1,0 +1,68 @@
+#!/bin/bash
+
+if [ -f cwdConfig.conf ]; then
+	source cwdConfig.conf
+else
+	echo "$(date +%s): cwdConfig.conf not found. Exit value 2" > cwdError.txt
+	exit 1
+fi
+
+export ENVFILENAME=".cwd_env"
+export LOGSAVEDIRECTORY
+export LOGFILENAME
+export LOGFILEEXTENSION
+export CPULIMITPERCENT
+export SAMPLETIMESECONDS
+
+if [[ -f $ENVFILENAME ]]; then
+	ISRUNNING=$(cat $ENVFILENAME | head -1)
+	RUNNINGPID=$(cat $ENVFILENAME | tail -1)
+else
+	echo -e "0\nN" > $ENVFILENAME
+fi
+
+case $1 in
+	"start")
+			if [[ $ISRUNNING -eq 1 ]]; then
+				echo "cpuWatchDog is already running as PID $RUNNINGPID"
+		 	else
+				./cpuWatchDog.sh&
+				echo -e "1\n$!" > $ENVFILENAME
+				echo "cpuWatchDog process started with PID $!"
+		 	fi
+		 	;;
+	"stop")
+			if [[ $ISRUNNING -eq 0 ]]; then
+				echo "No cpuWatchDog process running!"
+		 	else
+				echo -e "0\nN" > $ENVFILENAME
+				echo "stopping cpuWatchDog process"
+			
+				if [[ -f $ENVFILENAME ]]; then 
+        				while true; do
+						if ps $RUNNINGPID > /dev/null; then
+							echo "" > /dev/null
+						else
+							echo "cpuWatchDog with PID $RUNNINGPID stopped"
+							rm $ENVFILENAME 2> /dev/null
+							break
+						fi
+					done
+				fi
+			fi
+		 	;;
+	"status") 
+			if [[ $ISRUNNING -eq 1 ]]; then
+				echo -e "cpuWatchDog is running as PID $RUNNINGPID"
+		  	else
+				echo "cpuWatchDog is not running"
+		  	fi
+		  	;;
+	"clear")	echo "Removing cpuWatchDog log files..."
+			rm -v $LOGFILENAME*$LOGFILEEXTENSION 2> /dev/null
+			echo -e "\ncpuWatchDog logfiles removed"
+			;;
+	*)
+			echo -e "Invalid input variant!\nPossible values:\nstart, stop, status, clear"
+	   		;;
+esac
