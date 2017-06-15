@@ -1,0 +1,38 @@
+The cpuWatchDog script checks processes via ps aux command and test if any process use more that configured amount of CPU%.
+To run script, use cwdmanage script, that alows user to start and stop cpuWatchDog process without need of killing it internaly.
+
+Coplete set use 5 files:
+  cpuWatchDog.sh - manages cpu check in cycles given by config file and saves valid values in logfile
+  cwdConfig.conf - only contains variable values to set program environment
+  cdwmanage - starts, stops and checks cpuWatchDog.sh script and alows simple log clearing option
+  .cwd_env - contains only two values, 0 or 1 signalizing if process is running and PID of process, is hiden and deleted after stop
+  logfile - logfile name is customizable in cwdConfig.conf file, contains values of found processes
+  
+Usage:
+  cwdmanage start
+    starts cpuWatchDog process if no other is running (and saved in .cwd_env)
+    register PID of process in .cwd_env
+    if other previous cpuWatchDog process is running and registered in .cwd_env, prints only information about this process
+    
+  cwdmanage stop
+    stops cpuWatchDog process by changing variable in .cwd_env file, cpuWatchDog.sh turn off itselfs without need of kill command
+    stop command waits up to 1 sec to print succesful stop (based on actual processed code)
+    delete .cwd_env file
+  
+  cwdmanage status
+    prints if cpuWatchDog process is running, if so, prints its PID
+  
+  cwdmanage clear
+    removes all logfiles in configured directory
+    
+ 
+ cwdConfig.conf file:
+   file contains variables to configure environment of process
+   
+   LOGSAVEDIRECTORY="."     <- directory where to save logfiles, defaultly working directory
+   LOGFILENAME="cwd_"       <- start of logfile name
+   LOGFILEEXTENSION="log"   <- extension of logfile name
+   CPULIMITPERCENT=5        <- minimal cpu usage percent of process to add it in log
+   SAMPLETIMESECONDS=5      <- second between checks
+   
+   note: logfile name based on this parameters can be cwd_1421332478.log where number is timestamp of started cpuWatchDog.sh process
