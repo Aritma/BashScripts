@@ -14,15 +14,16 @@ export LOGFILEEXTENSION
 export CPULIMITPERCENT
 export SAMPLETIMESECONDS
 
-if [[ -f $ENVFILENAME ]]; then
-	ISRUNNING=$(cat $ENVFILENAME | head -1)
-	RUNNINGPID=$(cat $ENVFILENAME | tail -1)
-else
-	echo -e "0\nN" > $ENVFILENAME
-fi
 
 case $1 in
 	"start")
+			if [[ -f $ENVFILENAME ]]; then
+				ISRUNNING=$(cat $ENVFILENAME | head -1)
+				RUNNINGPID=$(cat $ENVFILENAME | tail -1)
+			else
+				echo -e "0\nN" > $ENVFILENAME
+			fi
+	
 			if [[ $ISRUNNING -eq 1 ]]; then
 				echo "cpuWatchDog is already running as PID $RUNNINGPID"
 		 	else
@@ -32,7 +33,7 @@ case $1 in
 		 	fi
 		 	;;
 	"stop")
-			if [[ $ISRUNNING -eq 0 ]]; then
+			if [[ -f $ENVFILENAME ]] || [[ $ISRUNNING -eq 0 ]]; then
 				echo "No cpuWatchDog process running!"
 		 	else
 				echo -e "0\nN" > $ENVFILENAME
@@ -52,7 +53,7 @@ case $1 in
 			fi
 		 	;;
 	"status") 
-			if [[ $ISRUNNING -eq 1 ]]; then
+			if  [[ -f $ENVFILENAME ]] || [[ $ISRUNNING -eq 1 ]]; then
 				echo -e "cpuWatchDog is running as PID $RUNNINGPID"
 		  	else
 				echo "cpuWatchDog is not running"
