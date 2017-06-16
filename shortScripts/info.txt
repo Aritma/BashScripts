@@ -1,0 +1,4 @@
+Short scripts directory
+Contains short fast scripts with simple tasks created for purpose of education.
+
+Scripts:
