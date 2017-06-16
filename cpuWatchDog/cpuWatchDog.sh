@@ -5,7 +5,7 @@ LOGFILEFINAL="$LOGFILENAME$(date +%s).$LOGFILEEXTENSION"
 while [[ $(cat $ENVFILENAME | head -1) -eq 1 ]]; do
 	ps aux | tail -n +2 | {
 		while IFS=  read -r line; do
-			if [[ $(echo "$line" | tr -s " " |  cut -f3 -d" " | cut -f1 -d".") -gt $CPULIMITPERCENT ]]; then
+			if [[ $(echo "$line" |  cut -f3 -d" " | cut -f1 -d".") -gt $CPULIMITPERCENT ]]; then
 				user=$(echo $line | cut -f1 -d" ")
 				pidVal=$(echo $line | cut -f2 -d" ")
 				cpuUsage=$(echo $line | cut -f3 -d" ")
