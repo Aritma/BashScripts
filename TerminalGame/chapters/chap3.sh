@@ -10,3 +10,6 @@ getVar AI
 text "CHAPTER 3 - RUINED DATA" $TEXTSPEED
 pressKey
 clear
+
+
+###UNFINISHED
