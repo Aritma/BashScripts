@@ -1,0 +1,27 @@
+Individual level params and files.
+List is important to reset game progress in specific step.
+
+Chapter 1
+main.sh
+functions
+chapters dir
+
+Chapter 2
+main.sh
+functions
+profile.conf - PLAYERNAME,AI,TEXTSPEED
+chapters dir
+Inventory 	/diary.txt
+			/key.card
+			/data_storage
+Loot dir - empty
+
+
+
+
+Quests:
+Check your old diary that merged with some system log and save it in your diary. Sorted.
+Add password from database into your key.card file.
+Unzip data-archive to get second part of password. Send both parts of key as package to specific place.
+Unhash targeting data in system transports using vi.
+

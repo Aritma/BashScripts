@@ -1,0 +1,141 @@
+#!/bin/bash
+
+#VARIABLES
+PROFILEPATH="./data/profile.conf"
+
+
+####FUNCTIONS####
+
+# USECOMMAND
+# use read to get command string and call it immediately
+
+function useCommand {
+	while true
+	do
+		echo -n "Command: "
+    	read COMMAND
+    	
+    	#pokud je parametr
+    	if [[ $# -eq 0 ]]; then
+    		break
+    	else
+    		for e in "$@";
+    		do
+    			if [[ "$COMMAND" == "$e" ]]; then
+    				break 2
+    			fi
+    		done
+    		echo "Other command expected ($# variants)! Try again."
+    	fi
+    done
+    echo -e "Output:\n-------"
+    eval $COMMAND
+    echo ""
+}
+
+
+# SOLVETIME
+# use readme to get series of commands until uset input is "done"
+
+function solveTime {
+	echo "-----------------"
+	echo "use commands to work, enter \"done\" to finish work"
+	while true
+	do
+		echo -n "Command: "
+        	read COMMAND
+		if [[ $COMMAND == "done" ]]
+		then
+			break
+		else
+            if [[ $COMMAND == "exit" ]]
+            then
+        		echo "exit command is not allowed, sorry"
+            	else
+                eval $COMMAND
+			fi
+		fi
+	done
+}
+
+
+# PRESSKEY
+# simple press any key to continue function
+
+function pressKey {
+	read -n 1 -s -p "<press key to continue>"
+	echo ""
+}
+
+
+# TEXTTYPE
+# use string as argument, prints text letter by letter
+
+function text {
+trap "echo 'GAME INTERUPTED';stty echo;exit" SIGINT SIGTERM
+word=$1
+COUNTER=1
+[[ ! -z "$3" ]] && echo $3
+stty -echo                      #do not echoes stdin
+for i in $(seq 1 ${#word})
+do
+	if [[ ${word:$COUNTER-1:1} == "\\" ]]; then
+ 		echo -n -e "${word:$COUNTER-1:2}"
+ 		COUNTER=$((COUNTER+2)) 
+	else
+ 		echo -n -e "${word:$COUNTER-1:1}"
+ 		COUNTER=$((COUNTER+1))
+	fi
+	sleep $2
+done
+stty echo                       #turn on stdin echo
+while read -e -s -t 1; do echo -n "" ; done     #silently reads all lines in buffer
+echo -e "\n"
+}
+
+# VARIABLE SAVING AND LOADING
+
+# GETVAR
+# getvar VAR loads and sets variable named in param string
+
+function getVar {
+	if [[ -f $PROFILEPATH ]]; then
+		if [[ $(grep "^$1|" $PROFILEPATH) ]]; then
+			eval "$1=$(grep "^$1|" $PROFILEPATH | cut -f2 -d"|")"
+		else
+			echo "ERROR: Value $1 does not exist"
+		fi
+	else
+		echo "Error: $PROFILEPATH file is missing"
+	fi
+}
+
+#SETVAR
+#setvar VAR stores VAR in profile file
+#if VAR exists setvar will modify actual value in file
+#if VAR is missing in file, setvar will add new line VAR|VALUE
+
+function setVar {
+	if [[ -f $PROFILEPATH ]]; then
+		if [[ $(grep "^$1|" $PROFILEPATH) ]]; then
+			sed -i.bak "s/^$1|.*$/$1|${!1}/" $PROFILEPATH
+		else
+			echo "$1|${!1}" >> $PROFILEPATH
+		fi
+	else
+		echo "WARNING: $PROFILEPATH file is missing. Creating new file."
+		touch $PROFILEPATH
+		echo "$1|${!1}" >> $PROFILEPATH
+	fi
+}
+
+#CHECKVAR
+#checkvar VAR returns true if profile file exists and contains VAR
+
+function checkVar {
+	if [[ -f $PROFILEPATH && $(grep "^$1|" $PROFILEPATH) ]]; then
+		return true
+	else
+		return false
+	fi
+}
