@@ -14,7 +14,7 @@ VERSION="1.0"
 #Uživatel si může vybrat přímý převod nebo pouze výpis známých kurzů
 #Výsledky budou zaokrouhlené na 3 desetinná místa
 #
-#Skript bere 0, 2 nebo 3 argumenty.
+#Skript bere 0-3 argumenty.
 #0 argumentů: uživateli bude nabídnut výpis kompletního kurzovního lístku s potvrzovacím y/n
 #	./prevod_meny.sh
 #1 argument: vypíše jednu tabulku pro specifikovanou měnu
