@@ -130,6 +130,12 @@ getRateList () {
 		#jednoho samostatného zápisu je však dostačující
 		
 		curl $ADRESA > $LISTNAME 2> /dev/null || (echo -e "CHYBA: Data nejsou dostupná" && rm $LISTNAME)
+		
+		#verze 1.1 - fix případu stažení prázdných dat
+	        if [ $(wc -l $LISTNAME) -eq 0 ];then
+		    echo "Pozor, při stahování dat došlo k chybě, opakujte pokus později."
+		    rm $LISTNAME
+		fi
 	fi
 }
 
@@ -465,22 +471,20 @@ if [ PARAMEXIT == "TRUE" ];then
 fi
 
 #pokud není zadaný žádný argument nebo parametr, je uživatel vyzván k použizí help nabídky
-#v případě, že je zadný alespoň jeden argument, provede se pouze stažení
+#v případě, že je zadný alespoň jeden argument, skript se pokusí tento argument zpracovat
 
 if [ $ARGNUM -eq 0 ];then
-    if [ $PARAMS == "" ];then
+    if [ "$PARAMS" == "" ];then
         echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
         echo "$0 -help"
+	exit
     fi
 else
-	  getRateList
-fi
-
-
-#následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
-#a vypíše výzvu k zadání parametru -help
-
-case $(getInputPattern $ARGUMENTS) in
+    getRateList
+    
+    #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
+    #a vypíše výzvu k zadání parametru -help
+    case $(getInputPattern $ARGUMENTS) in
 	"c")
 		printRateList $ARGUMENTS
 		;;
@@ -495,7 +499,8 @@ case $(getInputPattern $ARGUMENTS) in
 		echo "Použijte parametr -help pro nápovědu"
 		exit
 		;;
-esac
+    esac
+fi
 
 #pokud je použit parametr -clear, provede se mazání souborů
 isInList -clear $PARAMS && clearOldFiles
