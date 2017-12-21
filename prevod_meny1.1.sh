@@ -60,9 +60,9 @@ PARAMS=""
 ARGUMENTS=""
 ARGNUM=0
 
-#exit identifikátor určuje, zda je po zpracování parametrů opuštěn program
+#exit identifikátor určuje, zda je po zpracování parametrů ukončen program
 #hodnoty TRUE a FALSE (pravda nebo nepravda)
-#používáme řetězce TRUE a FALSE velkými aby nemohlo dojít k záměně s příkazy true/false
+#používáme řetězce TRUE a FALSE velkými písmeny aby nemohlo dojít k záměně s příkazy true/false
 #přidáno ve verzi 1.1 po odstranění interaktivního výstupu u varianty bez vstupů
 #přednastavená hodnota je FALSE, ve skriptu provádíme pouze jednorázovou změnu na TRUE pokud je potřeba
 PARAMEXIT="FALSE"
