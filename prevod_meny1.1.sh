@@ -140,7 +140,7 @@ getRateList () {
 }
 
 
-#---clearOldFiles---
+#---clearRateFiles---
 #VSTUPY: /
 #VÝSTUPY: Odstranění věch skrytých souborů s převodními tabulkami z adresáře
 #ZÁVISLOST: /
@@ -148,7 +148,7 @@ getRateList () {
 #	Najde všechny soubory s odpovídajícím tvarem a provede jejich výpis a smazání
 #------------------
 
-clearOldFiles () {
+clearRateFiles () {
 	echo "Odstraňuji soubory s převodními daty..."
 
         #Musíme použít přepínač -d u ls aby se nepokoušel procházet adresáře ale rovnou hledal
@@ -503,7 +503,7 @@ else
 fi
 
 #pokud je použit parametr -clear, provede se mazání souborů
-isInList -clear $PARAMS && clearOldFiles
+isInList -clear $PARAMS && clearRateFiles
 
 exit
 
