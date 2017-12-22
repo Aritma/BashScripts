@@ -294,7 +294,7 @@ getValidCurrencyList () {
 	#vše od n-tého řádku do konce souboru. Na konec seznamu přidáme CZK, protože tato měna je platná
 	#ale není uvedena v převodní tabulce
 	
-	cut -f4 -d"|" $LISTNAME | tail +3 | tr "\n" " "
+	cut -f4 -d"|" $LISTNAME | tail -n +3 | tr "\n" " "
 	echo CZK
 }
 
@@ -453,6 +453,7 @@ if isInList "-refresh" $PARAMS;then
 fi
 
 if isInList "-valid" $PARAMS;then
+    getRateList
     getValidCurrencyList
     PARAMEXIT="TRUE"
 fi
