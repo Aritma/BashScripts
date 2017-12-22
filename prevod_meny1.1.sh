@@ -477,18 +477,19 @@ if [ $# -eq 0 ];then
     echo "$0 -help"
     exit
 elif [ $ARGNUM -gt 0 ];then
-    getRateList
-    
     #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
     #a vypíše výzvu k zadání parametru -help
     case $(getInputPattern $ARGUMENTS) in
 	"c")
+		getRateList
 		printRateList $ARGUMENTS
 		;;
 	"cn")
+		getRateList
 		toCZK $ARGUMENTS
 		;;
 	"cnc")
+		getRateList
 		currToCurr $ARGUMENTS
 		;;
 	*)
