@@ -528,7 +528,7 @@ POUŽITÍ:
 3) Převod hodnoty platné měny na CZK			./prevod_meny.sh [měna] [hodnota]
 4) Převod hodnoty platné měny1 na jinou měnu2 		./prevod_meny.sh [měna1] [hodnota] [měna2]
 
-Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid
+Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid).
 Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skript se neprovede
 
 
@@ -537,6 +537,8 @@ Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skri
 Nezáleží na pozici parametru v pořadí argumentů, parametry jsou zpracované zvlášť
 
 - help		tato nápověda
+
+- table		zobrazí kompletní aktuální převodní tabulku
 
 - version	informace o verzi
 
