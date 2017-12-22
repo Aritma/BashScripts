@@ -294,7 +294,7 @@ getValidCurrencyList () {
 	#vše od n-tého řádku do konce souboru. Na konec seznamu přidáme CZK, protože tato měna je platná
 	#ale není uvedena v převodní tabulce
 	
-	cut -f4 -d"|" $LISTNAME | tail -n +3 | tr "\n" " "
+	cut -f4 -d"|" $LISTNAME | tail +3 | tr "\n" " "
 	echo CZK
 }
 
@@ -434,7 +434,8 @@ separateArgs $@
 if isInList "-help" $PARAMS;then
     [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
     echo "HELP - PŘEVOD MĚNY - VERZE $VERSION"
-    tail -63 $0
+    echo
+    tail -n +$(($(grep -n "^<<<HELP>>>$" $0 | cut -f1 -d:) + 1)) $0
   
     #help varianta rovnou ukončuje skript po vypsání
     exit
@@ -453,7 +454,6 @@ if isInList "-refresh" $PARAMS;then
 fi
 
 if isInList "-valid" $PARAMS;then
-    getRateList
     getValidCurrencyList
     PARAMEXIT="TRUE"
 fi
@@ -478,19 +478,18 @@ if [ $# -eq 0 ];then
     echo "$0 -help"
     exit
 elif [ $ARGNUM -gt 0 ];then
+    getRateList
+    
     #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
     #a vypíše výzvu k zadání parametru -help
     case $(getInputPattern $ARGUMENTS) in
 	"c")
-		getRateList
 		printRateList $ARGUMENTS
 		;;
 	"cn")
-		getRateList
 		toCZK $ARGUMENTS
 		;;
 	"cnc")
-		getRateList
 		currToCurr $ARGUMENTS
 		;;
 	*)
@@ -513,11 +512,11 @@ exit
 #ZBYTEK SOUBORU JE JIŽ NORMÁLNÍ TEXTOVÝ SOUBOR
 #KONEC SOUBORU POUŽIJEME JAKO ZDROJ PRO NÁPOVĚDU
 
-<HELP>
+#zápis o řádek níže slouží k identifikaci řádku, neměnit!!!
+<<<HELP>>>
 ** PŘEVODNÍK MĚN
 Skript slouží k převodu měn na základě kurzovního lístku České Národní banky.
 Kurzovní lístek se jednou denně stahuje z online podkladů ČNB
-
 
 POUŽITÍ:
 <jmenéno skriptu> [vzor argumentů] [parametry]
@@ -530,7 +529,7 @@ POUŽITÍ:
 3) Převod hodnoty platné měny na CZK			./prevod_meny.sh [měna] [hodnota]
 4) Převod hodnoty platné měny1 na jinou měnu2 		./prevod_meny.sh [měna1] [hodnota] [měna2]
 
-Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid).
+Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid
 Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skript se neprovede
 
 
@@ -538,18 +537,18 @@ Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skri
 -----------
 Nezáleží na pozici parametru v pořadí argumentů, parametry jsou zpracované zvlášť
 
-- help		tato nápověda
+-help		tato nápověda
 
-- table		zobrazí kompletní aktuální převodní tabulku
+-version	informace o verzi
 
-- version	informace o verzi
+-table		zobrazí kompletní aktuální převodní tabulku
 
-- refresh	samostatné obnovení souboru s daty pro převod (kurzovní lístek ČNB)
+-refresh	samostatné obnovení souboru s daty pro převod (kurzovní lístek ČNB)
 		POZOR: Smaže případný starý soubor a nahradí ho nově staženým
 
-- valid		zobrazí použitelné měny, pokud nejsou jsou data k dispozici, automaticky stáhne nová
+-valid		zobrazí použitelné měny, pokud nejsou jsou data k dispozici, automaticky stáhne nová
 
-- clear		smaže všechny existující soubory se staženými daty
+-clear		smaže všechny existující soubory se staženými daty
 
 
 Číselné hodnoty pro převod
