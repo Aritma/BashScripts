@@ -290,11 +290,11 @@ printRateList () {
 #-----------------------
 
 getValidCurrencyList () {
-	#V řetězci použijeme příkaz tail +n, jedná se o zápis specifický pro tail a umožňuje zobrazit
+	#V řetězci použijeme příkaz tail -n +3, jedná se o zápis specifický pro tail a umožňuje zobrazit
 	#vše od n-tého řádku do konce souboru. Na konec seznamu přidáme CZK, protože tato měna je platná
 	#ale není uvedena v převodní tabulce
 	
-	cut -f4 -d"|" $LISTNAME | tail +3 | tr "\n" " "
+	cut -f4 -d"|" $LISTNAME | tail -n +3 | tr "\n" " "
 	echo CZK
 }
 
@@ -454,6 +454,7 @@ if isInList "-refresh" $PARAMS;then
 fi
 
 if isInList "-valid" $PARAMS;then
+    getRateList
     getValidCurrencyList
     PARAMEXIT="TRUE"
 fi
@@ -476,26 +477,28 @@ fi
 if [ $# -eq 0 ];then
     echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
     echo "$0 -help"
-    exit
+    exit 1
 elif [ $ARGNUM -gt 0 ];then
-    getRateList
     
     #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
     #a vypíše výzvu k zadání parametru -help
     case $(getInputPattern $ARGUMENTS) in
 	"c")
+    		getRateList
 		printRateList $ARGUMENTS
 		;;
 	"cn")
+		getRateList
 		toCZK $ARGUMENTS
 		;;
 	"cnc")
+		getRateList
 		currToCurr $ARGUMENTS
 		;;
 	*)
 		echo "Neplatná kombinace argumentů!"
 		echo "Použijte parametr -help pro nápovědu"
-		exit
+		exit 1
 		;;
     esac
 fi
