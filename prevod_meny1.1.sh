@@ -432,12 +432,12 @@ separateArgs $@
 #pokud přidáváte nové hodnoty, nezapoměňte je přidat i do proměnné PARAMLIST
 
 if isInList "-help" $PARAMS;then
-	  [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
+    [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
     echo "HELP - PŘEVOD MĚNY - VERZE $VERSION"
-	  tail -63 $0
+    tail -63 $0
   
     #help varianta rovnou ukončuje skript po vypsání
-	  exit
+    exit
 fi
 
 if isInList "-version" $PARAMS;then
@@ -446,21 +446,20 @@ if isInList "-version" $PARAMS;then
 fi
 
 if isInList "-refresh" $PARAMS;then
-	  [ -f $LISTNAME ] && rm $LISTNAME
+    [ -f $LISTNAME ] && rm $LISTNAME
     getRateList
-	  echo "Data aktualizována (soubor $LISTNAME)"
+    echo "Data aktualizována (soubor $LISTNAME)"
     echo ...
 fi
 
 if isInList "-valid" $PARAMS;then
-    [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
     getValidCurrencyList
     PARAMEXIT="TRUE"
 fi
 
 if isInList "-table" $PARAMS;then
     getRateList
-	  printRateList
+    printRateList
     echo ...
 fi
 
