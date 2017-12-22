@@ -476,7 +476,7 @@ if [ $# -eq 0 ];then
     echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
     echo "$0 -help"
     exit
-else
+elif [ $ARGNUM -gt 0 ];then
     getRateList
     
     #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
