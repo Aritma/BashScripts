@@ -472,12 +472,10 @@ fi
 #pokud není zadaný žádný argument nebo parametr, je uživatel vyzván k použizí help nabídky
 #v případě, že je zadný alespoň jeden argument, skript se pokusí tento argument zpracovat
 
-if [ $ARGNUM -eq 0 ];then
-    if [ "$PARAMS" == "" ];then
-        echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
-        echo "$0 -help"
-	exit
-    fi
+if [ $# -eq 0 ];then
+    echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
+    echo "$0 -help"
+    exit
 else
     getRateList
     
