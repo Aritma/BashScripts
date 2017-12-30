@@ -15,7 +15,7 @@ VERSION="1.1"
 #Výsledky budou zaokrouhlené na 3 desetinná místa
 #
 #Skript bere 0-3 argumenty.
-#0 argumentů: uživateli bude nabídnut výpis kompletního kurzovního lístku s potvrzovacím y/n
+#0 argumentů: uživateli bude nabídnuto použití help menu
 #	./prevod_meny.sh
 #1 argument: vypíše jednu tabulku pro specifikovanou měnu
 #	./prevod_meny.sh JPY
@@ -25,6 +25,11 @@ VERSION="1.1"
 #3 argumenty: přímý převod měny (první argument) o dané hodnotě (druhý argument) na jinou měnu (třetí argument)
 #	./prevod_meny.sh CZK 23 USD
 #	./prevod_meny.sh USD 123 JPY
+#
+#Skript umí pracovat s parametry začínajícími pomlčkou.
+#Parametry slouží k aktivování dodatečných funkcí skriptu.
+#	./prevod_meny.sh -clear
+#	./prevod_meny.sh -refresh
 #-----------------------------------
 
 
@@ -42,17 +47,17 @@ ADRESAEN="http://www.cnb.cz/en/financial_markets/foreign_exchange_market/exchang
 ADRESACZ="http://www.cnb.cz/cs/financni_trhy/devizovy_trh/kurzy_devizoveho_trhu/denni_kurz.txt"
 
 #jméno souboru, který se bude daný den zpracovávat
-#nastavení dle jazykové varinaty
+#nastavení dle jazykové varianty
 #přidáno s funkcí getRateList
 DATE=$(date +%d%m%y)
 LISTNAME=".${DATE}_exchangeRate$LOCALIZATION"
 
-#seznam parametrů, používaných ve skriptu, uložených jako string
+#seznam parametrů, používaných ve skriptu, uložených jako řetězec
 #během psaní skriptu je možné doplňovat další funkcionalitu přidáváním hodnot
 #přidáno s funkcí checkArgs
 PARAMLIST="-clear -help -version -refresh -valid -table"
 
-#Proměnné pro uložení argumentů, přepíačů a celkového počtu argumentů
+#Proměnné pro uložení argumentů, přepínačů a celkového počtu argumentů
 #jsou podruhé uvedené i v samotné funkci pro zajištění správné hodnoty
 #zde je uvádíme pro lepší zřetelnost a také pro případné testování kódu
 #přidáno s funkcí checkArgs
@@ -83,11 +88,12 @@ PARAMEXIT="FALSE"
 
 #Hlavička funkce:
 #Každá funkce má svoji hlavičku, která udává rychlý přehled použití funkce
+#
 #---<jmeno funkce>---
 #VSTUPY: vstupy, které funkce vyžaduje, včetne pořadí a dalších vlastností
 #VÝSTUPY: teoretický očekávaný výstup funkce, je důležité ho zachovat kvůli návaznosti funkcí ne sebe
 #ZÁVISLOST: 	jaké funkce jsou použité v této funkci, funkce která požaduje jinou funkci musí být v kódu
-#		umístěna až po funkci, kterou používá	
+#				umístěna až po funkci, kterou používá	
 #POPIS:	Popis chování a vlastností funkce
 
 
@@ -103,12 +109,9 @@ PARAMEXIT="FALSE"
 
 getRateList () {
 	#nastavení dle jazykové varinaty
-	#DATE=$(date +%d%m%y)
 	if [ $LOCALIZATION == "EN" ];then
-	#	LISTNAME=".${DATE}_exchangeRateEN"
 		ADRESA=$ADRESAEN
 	elif [ $LOCALIZATION == "CZ" ];then
-	#	LISTNAME=".${DATE}_exchangeRateCZ"
 		ADRESA=$ADRESACZ
 	else
 		echo "ERROR: Neplatná hodnota proměnné LOCALIZATION. Varianty: EN,CZ" >&2
@@ -129,12 +132,18 @@ getRateList () {
 		#Tato metoda není vhodná pro časté zápisy, protože dělá zápis na disku, pro naše potřeby
 		#jednoho samostatného zápisu je však dostačující
 		
-		curl $ADRESA > $LISTNAME 2> /dev/null || (echo -e "CHYBA: Data nejsou dostupná" && rm $LISTNAME)
+		curl $ADRESA > $LISTNAME 2> /dev/null 
+		if [ $? -gt 0 ];then
+		    echo "CHYBA: Data nejsou dostupná" >&2
+		    rm $LISTNAME
+		    exit 1
+		fi
 		
 		#verze 1.1 - fix případu stažení prázdných dat
-	        if [ $(wc -l $LISTNAME) -eq 0 ];then
-		    echo "Pozor, při stahování dat došlo k chybě, opakujte pokus později."
+	    if [ $(wc -l $LISTNAME) -eq 0 ];then
+			echo "Pozor, při stahování dat došlo k chybě, opakujte pokus později." >&2
 		    rm $LISTNAME
+		    exit 1
 		fi
 	fi
 }
@@ -142,10 +151,10 @@ getRateList () {
 
 #---clearRateFiles---
 #VSTUPY: /
-#VÝSTUPY: Odstranění věch skrytých souborů s převodními tabulkami z adresáře
+#VÝSTUPY: Odstranění všech skrytých souborů s převodními tabulkami z adresáře
 #ZÁVISLOST: /
 #POPIS: Maže soubory s převodními daty.
-#	Najde všechny soubory s odpovídajícím tvarem a provede jejich výpis a smazání
+#		Najde všechny soubory s odpovídajícím tvarem a provede jejich výpis a smazání
 #------------------
 
 clearRateFiles () {
@@ -158,8 +167,8 @@ clearRateFiles () {
 		echo "SOUBORY:"
 
 		for toRemove in $(ls -d .*_exchangeRate*);do
-			rm "$toRemove"
-			echo $toRemove - ODSTRANĚNO
+		    rm "$toRemove"
+		    echo $toRemove - ODSTRANĚNO
 		done
 	else
 		echo "Žádné soubory k odstranění nebyly nalezeny."
@@ -244,7 +253,8 @@ formatOutput () {
         #Příkaz printf zavoláme v subshellu, před samotným printf změníme v daném subshellu
         #proměnnou IFS na hodnotu "|", tím změníme oddělovač slov v daném shellu
 
-        (IFS="|";printf "$format" $1)
+        IFS="|" printf "$format" $1
+        #(IFS="|";printf "$format" $1)
 }
 
 
@@ -254,15 +264,15 @@ formatOutput () {
 #ZÁVISLOST: formatOutput
 #POPIS: Vypíše převodní tabulku ve formátované variantě
 #	Pokud je zadaný argument se spefickou měnou, provede se výpis pouze pro zvolenou měnu
-#	Pokud je hodnota CZK, provede se pouze informační výpis že tabulka neexistuje
+#	Pokud je hodnota CZK, provede se pouze informační výpis, že tabulka neexistuje
 #------------------
 
 printRateList () {
 	if [ $# -eq 0 ];then
-		#celý list pokud není zadný argument
+		#celý list pokud není zadaný argument
 
 		for val in $(cat $LISTNAME | tr " " "_" | tr "\n" " ");do
-        		formatOutput $val
+        	formatOutput $val
 		done
 	else	
 		#pouze hlavička souboru a hledaná měna
@@ -273,8 +283,8 @@ printRateList () {
 			echo "Hodnota CZK nemá vlastní převodní tabulku CZK -> CZK"
 		else
 			for val in $(head -2 $LISTNAME | tr " " "_" | tr "\n" " ");do
-                        	formatOutput $val
-                	done
+                formatOutput $val
+            done
 			formatOutput $(grep $1 $LISTNAME | tr " " "_")
 		fi
 	fi
@@ -330,9 +340,9 @@ separateArgs () {
 	#proměnné znovu nastavíme, abychom si byli jistí, že je v nich správná hodnota
 	ARGUMENTS=""
 	ARGNUM=0
-	OPTIONS=""
+	PARAMS=""
 
-	#nejdříve od sebe oddělíme argumenty a přepínače
+	#nejdříve od sebe oddělíme argumenty a parametry
 	for ARG in $@;do
 		if [[ "$ARG" =~ ^-.*$ ]];then
 			PARAMS="$PARAMS $ARG"
@@ -345,7 +355,7 @@ separateArgs () {
 	#přepínače (parametry) zkontrolujeme zda jsou jejich hodnoty platné,
 	#případně vyvoláme odpovídající chybu v zadání
 	#test provádíme negací výsledku funkce isInList -> není v listu
-	#kontrolu argumentů provádíme až při zjišťování pracovního vzoru
+	#kontrolu argumentů provádíme až při zjišťování jejich vstupního vzoru
 
 	for PAR in $PARAMS;do
                 if ! isInList $PAR $PARAMLIST; then
@@ -423,9 +433,7 @@ getInputPattern () {
 #--------------------------
 
 #zpracování všech argumentů skriptu
-
 separateArgs $@
-
 
 #kontrola, zda není použit parametr
 #některé parametry ukončují skript přednostně
@@ -435,6 +443,8 @@ if isInList "-help" $PARAMS;then
     [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
     echo "HELP - PŘEVOD MĚNY - VERZE $VERSION"
     echo
+    
+    #výpis proběhne vždy od klíčového žetězce "<<<HELP>>>" bez ohledu na délku zbytku souboru
     tail -n +$(($(grep -n "^<<<HELP>>>$" $0 | cut -f1 -d:) + 1)) $0
   
     #help varianta rovnou ukončuje skript po vypsání
@@ -466,7 +476,7 @@ if isInList "-table" $PARAMS;then
 fi
 
 #Ukončení skriptu, pokud to alespoň jeden parametr vyžaduje
-if [ PARAMEXIT == "TRUE" ];then
+if [ $PARAMEXIT == "TRUE" ];then
     [ $ARGNUM -gt 0 ] && echo "Argumenty skriptu byly ignorovány..."
     exit
 fi
@@ -475,29 +485,27 @@ fi
 #v případě, že je zadný alespoň jeden argument, skript se pokusí tento argument zpracovat
 
 if [ $# -eq 0 ];then
-    echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu"
-    echo "$0 -help"
+    echo "Nejsou zadané platné vstupy, použijte -help pro nápovědu" >&2
+    echo "$0 -help" >&2
     exit 1
 elif [ $ARGNUM -gt 0 ];then
-    
+    getRateList
+
     #následující blok zpracovává vstup na základě zadaného vzoru, neplatné vzory vyhodnotí jako chybu
     #a vypíše výzvu k zadání parametru -help
     case $(getInputPattern $ARGUMENTS) in
 	"c")
-    		getRateList
 		printRateList $ARGUMENTS
 		;;
 	"cn")
-		getRateList
 		toCZK $ARGUMENTS
 		;;
 	"cnc")
-		getRateList
 		currToCurr $ARGUMENTS
 		;;
 	*)
-		echo "Neplatná kombinace argumentů!"
-		echo "Použijte parametr -help pro nápovědu"
+		echo "Neplatná kombinace argumentů!" >&2
+		echo "Použijte parametr -help pro nápovědu" >&2
 		exit 1
 		;;
     esac
@@ -517,9 +525,9 @@ exit
 
 #zápis o řádek níže slouží k identifikaci řádku, neměnit!!!
 <<<HELP>>>
-** PŘEVODNÍK MĚN
+** PŘEVOD MĚN
 Skript slouží k převodu měn na základě kurzovního lístku České Národní banky.
-Kurzovní lístek se jednou denně stahuje z online podkladů ČNB
+Kurzovní lístek se jednou denně stahuje z online podkladů ČNB.
 
 POUŽITÍ:
 <jmenéno skriptu> [vzor argumentů] [parametry]
@@ -527,13 +535,12 @@ POUŽITÍ:
 
 [vzor argumentů]
 ----------------
-1) Zobrazení kompletní převodní tabulky (bez argumentu)	./prevod_meny.sh
-2) Zobrazení převodní tabulky pro určitou měnu		./prevod_meny.sh [měna]
-3) Převod hodnoty platné měny na CZK			./prevod_meny.sh [měna] [hodnota]
-4) Převod hodnoty platné měny1 na jinou měnu2 		./prevod_meny.sh [měna1] [hodnota] [měna2]
+1) Zobrazení převodní tabulky pro určitou měnu		./prevod_meny.sh [měna]
+2) Převod hodnoty platné měny na CZK			./prevod_meny.sh [měna] [hodnota]
+3) Převod hodnoty platné měny1 na jinou měnu2 		./prevod_meny.sh [měna1] [hodnota] [měna2]
 
-Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid
-Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skript se neprovede
+Musí být zadaná platná měna z kurzovního lístku (lze zjistit parametrem -valid).
+Všechny nepodporované tvary argumentů budou vyhodnoceny jako neplatné a skript se neprovede.
 
 
 [parametry]
@@ -569,8 +576,8 @@ Validní zápisy:
 Příklady použití
 ----------------
 ./prevod_meny.sh JPY 2843.17
-./prevod_meny.sh GBP 122 EUR
-./prevod_meny.sh EUR .88 CZK
+./prevod_meny.sh GBP
+./prevod_meny.sh EUR .88
 
 
 EXIT STATUS:
