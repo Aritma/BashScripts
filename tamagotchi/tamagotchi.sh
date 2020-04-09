@@ -16,7 +16,7 @@ fi
 # VARIABLES
 # =========
 DB_FILE="${WORKING_DIR}/${DB_FILE_NAME}"
-
+LOG_FILE="${WORKING_DIR}/$LOG_FILE_NAME}"
 
 # FUNCTIONS
 # =========
@@ -36,7 +36,12 @@ function name_exists () {
 # arg: Name of creature (String)
 #
 function new_creature () {
-	sqlite3 $DB_FILE "INSERT INTO creatures (name,food,health) VALUES ('$1', 10000, $(( (RANDOM%51) +100)) );"
+	until sqlite3 $DB_FILE "INSERT INTO creatures (name,food,health) VALUES ('$1', 10000, $(( (RANDOM%51) +100)) );"
+	do
+		add_log "WARNING: SQL Query cannot be processed, DB probably locked, waiting..."
+		echo "DB locked, waiting..."
+		sleep 1
+	done
 }
 
 # get_status: Prints current status of creature.
@@ -63,8 +68,16 @@ function get_status () {
 check_if_argument_exists () {
 	if [ -z $2 ];then
         	echo $1
+		add_log "ERROR: Missing argument during request"
                 exit 1
         fi
+}
+
+# add_log: Write message into the LOG_FILE_NAME file
+# arg:	Log message (String)
+#
+function add_log () {
+	echo "$(date -u +%Y-%m-%d_%H:%M:%S_%Z) $1" >> $LOG_FILE_NAME 
 }
 
 
@@ -78,6 +91,7 @@ case $1 in
 			exit 1
 		fi
 		echo "CREATING $2"
+		add_log "Creature $2 created in $DB_FILE_NAME"
 		new_creature "$2"
 		
 		;;
@@ -88,6 +102,7 @@ case $1 in
                         exit 1
                 fi
 		get_status "$2"
+		add_log "Getting status of $2 from $$DB_FILE_NAME"
 		;;
 	'feed')
                 check_if_argument_exists "ERROR: You must define creature name" "$2"
@@ -96,6 +111,7 @@ case $1 in
                         exit 1
                 fi
 		echo "FEEDING $2"
+		add_log "Creature $2 feeded"
 		;;
 	'heal')
                 check_if_argument_exists "ERROR: You must define creature name" "$2"
@@ -104,6 +120,7 @@ case $1 in
                         exit 1
                 fi
 		echo "HEALING $2"
+		add_log "Creature $2 healed"
 		;;
 	*)
 		echo "INVALID ARGUMENT!"
